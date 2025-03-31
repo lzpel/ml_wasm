@@ -1,0 +1,8 @@
+[package]
+name = "ml_wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ort = "^1"
+image = "^0"
