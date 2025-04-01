@@ -1,8 +1,8 @@
 generate:
-	cd demo && npm install
+	cd frontend && npm install
 	cargo install wasm-pack
-	rustup default 1.81
-	wasm-pack build demo/wasm -d ../lib
+	@: rustup default 1.81
+	wasm-pack build . -d ../lib
 	rustup default stable
 run:
 	cd frontend && npm run dev

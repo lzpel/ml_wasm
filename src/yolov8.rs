@@ -1,9 +1,13 @@
 use image::{DynamicImage, GenericImageView, Pixel};
-use ort::{SessionBuilder, Value};
+use ort::session::builder::{GraphOptimizationLevel};
+use ort::session::Session;
+use ort::value::Value;
 
-pub fn yolo(model_path: impl AsRef<std::path::Path>, original_img: &image::DynamicImage, confidence: f32) -> ort::Result<(DynamicImage, Vec<BBox>)> {
+pub fn yolov8(model_path: impl AsRef<std::path::Path>, original_img: &image::DynamicImage, confidence: f32) -> ort::Result<(DynamicImage, Vec<BBox>)> {
     let size = 640usize;
-    let model = SessionBuilder::new()?.commit_from_file(model_path)?;
+    let model = Session::builder()?
+        .with_optimization_level(GraphOptimizationLevel::Level3)?
+        .commit_from_file(model_path)?;
     let img = resize_with_padding(size, original_img);
     //https://github.com/pykeio/ort/blob/main/examples/yolov8/examples/yolov8.rs
     //モデル構造の可視化
@@ -12,7 +16,7 @@ pub fn yolo(model_path: impl AsRef<std::path::Path>, original_img: &image::Dynam
     let input: Vec<f32> = [0, 1, 2].into_iter().map(|v| img.pixels().map(move |(_x, _y, c)| c.channels()[v] as f32 / 255.)).flatten().collect();
     let input_tensor = Value::from_array(([1, 3, size as usize, size as usize], input))?;
     let outputs = model.run(ort::inputs!["images" => input_tensor]?)?;
-    let (_key, raw_output) = outputs.first_key_value().unwrap();
+    let (_key, raw_output) = outputs.iter().next().unwrap();
     let output = raw_output.try_extract_tensor::<f32>()?.t().into_owned();
     let output_shape = output.shape();
     println!("{:?}", &output_shape);
@@ -106,15 +110,15 @@ mod tests {
     use super::*;
     #[test]
     fn test_resize_with_padding() {
-        let output = resize_with_padding(320, &load_test());
-        output.save("../output/test.png").unwrap();
+        let output = resize_with_padding(320, &load_image());
+        output.save("test_resize_with_padding.out.png").unwrap();
     }
     #[test]
-    fn test_flatten_value() {
-        let (img, out) = yolo("v3best200.onnx", &load_test(), 0.5).expect("TODO: panic message");
-        image_with_bbox(&img, &out).save("../output/test2.png").expect("TODO: panic message");
+    fn test_yolov8n() {
+        let (img, out) = yolov8("yolov8n.onnx", &load_image(), 0.5).expect("TODO: panic message");
+        image_with_bbox(&img, &out).save("test_flatten_value.out.png").unwrap();
     }
-    fn load_test() -> DynamicImage {
-        image::open(r"../frontend/public/dummy/DSC_0960_JPG.rf.2ebe7f35c9664437eb387d8910a6faa9.jpg").unwrap()
+    fn load_image() -> DynamicImage {
+        image::open(r"data/baseball.jpg").unwrap()
     }
 }
