@@ -7,7 +7,13 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-tract-onnx = {version = "0.21.11"}
+# features = ["getrandom-js"] は getrandomがデフォルトでwasm化できないことが理由
+# tract/onnx/Cargo.toml　では　getrandom-js = ["tract-onnx-opl/getrandom-js"]　と書いてあり
+# tract/onnx-opl/Cargo.toml では 以下のように書かれている。これにより設定が伝搬する
+# getrandom-js = ["getrandom/js"]
+# [dependencies]
+# getrandom.workspace = true
+tract-onnx = {version = "0.21.11", features = ["getrandom-js"]}
 image = "^0"
 wasm-bindgen = "*"
 console_error_panic_hook = "*"

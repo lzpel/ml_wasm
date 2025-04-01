@@ -2,10 +2,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 pub mod yolov8;
 
-fn main() {
-    println!("Hello, world!");
-}
-
 #[wasm_bindgen]
 pub fn yolov8(input_image: Vec<u8>) -> Result<Vec<u8>, String>{
     let input_image=image::load_from_memory(input_image.as_slice()).map_err(|e| e.to_string())?;
