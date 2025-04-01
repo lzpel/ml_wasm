@@ -30,7 +30,7 @@ pub fn yolov8(model_path: impl AsRef<std::path::Path>, original_img: &image::Dyn
     let output_tensor_0=output_tensor.index_axis(Axis(0), 0);
     //println!("{:?}", result.shape());
     let mut boxes: Vec<BBox> = Default::default();
-    for (index, row) in output_tensor_0.axis_iter(Axis(1)).enumerate(){
+    for row in output_tensor_0.axis_iter(Axis(1)){
         let mut i =row.iter();
         let x_center_y_center_w_h:[f32;4]= std::array::from_fn(|_| *i.next().unwrap()/size as f32);
         let (class, prob) = i.enumerate()
