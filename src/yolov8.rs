@@ -1,40 +1,44 @@
 use image::{DynamicImage, GenericImageView, Pixel};
-use ort::session::builder::{GraphOptimizationLevel};
-use ort::session::Session;
-use ort::value::Value;
+use tract_onnx::prelude::*;
+use tract_onnx::tract_core::ndarray::Axis;
 
-pub fn yolov8(model_path: impl AsRef<std::path::Path>, original_img: &image::DynamicImage, confidence: f32) -> ort::Result<(DynamicImage, Vec<BBox>)> {
+pub fn yolov8(model_path: impl AsRef<std::path::Path>, original_img: &image::DynamicImage, confidence: f32) -> TractResult<(DynamicImage, Vec<BBox>)> {
     let size = 640usize;
-    let model = Session::builder()?
-        .with_optimization_level(GraphOptimizationLevel::Level3)?
-        .commit_from_file(model_path)?;
+    let model = tract_onnx::onnx()
+        // load the model
+        .model_for_path(model_path)?
+        // optimize the model
+        .into_optimized()?;
+    //モデル構造の可視化
+    for input in model.input_outlets()? {
+        println!("Input: {:?}, Shape: {:?}", input, model.outlet_fact(*input)?);
+    }
+    for output in model.output_outlets()? {
+        println!("Output: {:?}, Shape: {:?}", output, model.outlet_fact(*output)?);
+    }
+    // make the model runnable and fix its inputs and outputs
+    let model_runnable=model.into_runnable()?;
     let img = resize_with_padding(size, original_img);
     //https://github.com/pykeio/ort/blob/main/examples/yolov8/examples/yolov8.rs
-    //モデル構造の可視化
-    println!("{:?}", model.inputs);
-    println!("{:?}", model.outputs);
-    let input: Vec<f32> = [0, 1, 2].into_iter().map(|v| img.pixels().map(move |(_x, _y, c)| c.channels()[v] as f32 / 255.)).flatten().collect();
-    let input_tensor = Value::from_array(([1, 3, size as usize, size as usize], input))?;
-    let outputs = model.run(ort::inputs!["images" => input_tensor]?)?;
-    let (_key, raw_output) = outputs.iter().next().unwrap();
-    let output = raw_output.try_extract_tensor::<f32>()?.t().into_owned();
-    let output_shape = output.shape();
-    println!("{:?}", &output_shape);
-    let output_reshaped = output.to_shape((output_shape[0], output_shape[1])).expect("Failed to reshape the output");
+    //let input: Vec<f32> = [0, 1, 2].into_iter().map(|v| img.pixels().map(move |(_x, _y, c)| c.channels()[v] as f32 / 255.)).flatten().collect();
+    let image: Tensor = tract_ndarray::Array4::from_shape_fn((1, 3, size, size), |(_, c, y, x)| {
+        img.get_pixel(x as _, y as _).channels()[c as usize] as f32 / 255.
+    }).into();
+    let results = model_runnable.run(tvec!(image.into()))?;
+    let result = &results[0];
+    let output_tensor = result.to_array_view::<f32>()?;
+    let output_tensor_0=output_tensor.index_axis(Axis(0), 0);
+    //println!("{:?}", result.shape());
     let mut boxes: Vec<BBox> = Default::default();
-    for row in output_reshaped.axis_iter(output_reshaped.axes().nth(0).unwrap().axis) {
-        let row: Vec<_> = row.iter().copied().collect();
-        let (class, prob) = row
-            .iter()
-            .skip(4) // skip bounding box coordinates
-            .enumerate()
-            .map(|(index, value)| (index, *value))
+    for (index, row) in output_tensor_0.axis_iter(Axis(1)).enumerate(){
+        let mut i =row.iter();
+        let x_center_y_center_w_h:[f32;4]= std::array::from_fn(|_| *i.next().unwrap()/size as f32);
+        let (class, prob) = i.enumerate()
             .reduce(|accum, row| if row.1 > accum.1 { row } else { accum })
             .unwrap();
-        if prob < confidence {
-            continue;
+        if *prob > confidence {
+            boxes.push(BBox::new(x_center_y_center_w_h, *prob, class));
         }
-        boxes.push(BBox::new([0, 1, 2, 3].map(|v| row[v] / size as f32), prob, class));
     }
     Ok((img, BBox::nms(boxes, 0.45)))
 }
@@ -116,7 +120,7 @@ mod tests {
     #[test]
     fn test_yolov8n() {
         let (img, out) = yolov8("yolov8n.onnx", &load_image(), 0.5).expect("TODO: panic message");
-        image_with_bbox(&img, &out).save("test_flatten_value.out.png").unwrap();
+        image_with_bbox(&img, &out).save("test_yolov8n.out.png").unwrap();
     }
     fn load_image() -> DynamicImage {
         image::open(r"data/baseball.jpg").unwrap()
