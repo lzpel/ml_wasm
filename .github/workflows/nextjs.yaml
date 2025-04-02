@@ -81,12 +81,12 @@ jobs:
       - name: Build with Next.js
         working-directory: ./frontend
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
-      - name: debug
-        run: ls frontend; tree frontend
+      - name: Debug
+        run: tree -I 'node_modules|target|.git' -L 2
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/out
+          path: ./out
 
   # Deployment job
   deploy:
