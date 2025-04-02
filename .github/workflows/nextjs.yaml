@@ -82,13 +82,7 @@ jobs:
         working-directory: ./frontend
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Copy and Adjustment
-        run: | 
-          cp -rf frontend/out ./
-          touch ./out/.nojekyll
-          echo 1 > ./out/_next/main-4de521e6c7bd6df3
-          echo 1 > ./out/_next/main-4de521e6c7bd6df3.js
-          echo 1 > ./out/main-4de521e6c7bd6df3
-          echo 1 > ./out/main-4de521e6c7bd6df3.js
+        run: cp -rf frontend/out ./
       - name: Debug
         run: |
           tree -a -L 4 -I 'node_modules|target|.git' .

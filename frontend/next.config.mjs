@@ -1,4 +1,4 @@
-const GITHUB_REPO = process.env.GITHUB_PAGES ? "ml-wasm" : undefined;
+const GITHUB_REPO = process.env.GITHUB_PAGES ? "ml_wasm" : undefined;
 // next.config.tsはworkflowが読み込めない。mjsが回避策
 const nextConfig = {
 	output: 'export', // これは動的なサイトを生成してしまうので間違いでexportが正解。そしてmjsにするならばexportも書かなくてよい
