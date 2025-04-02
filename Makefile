@@ -15,10 +15,6 @@ run:
 	cd frontend && npm run dev
 deploy:
 	cd frontend && npm run build
-standalone:
-	@: This minimal server does not copy the public or .next/static folders by default as these should ideally be handled by a CDN instead, although these folders can be copied to the standalone/public and standalone/.next/static folders manually, after which server.js file will serve these automatically.
-	@: Advanced Features: Output File Tracing | Next.js https://nextjs.org/docs/advanced-features/output-file-tracing
-	cd frontend && node .next/standalone/server.js
 tree:
 	@: wasmコンパイルできない理由を探るのに便利
 	cargo tree
