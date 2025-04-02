@@ -1,7 +1,7 @@
 import type {NextConfig} from "next";
 
 const nextConfig: NextConfig = {
-	output: 'standalone',
+	// output: 'standalone', これは動的なサイトを生成してしまうので間違い
 	webpack: (config, options) => {
 		config.experiments = {
 			...config.experiments,
