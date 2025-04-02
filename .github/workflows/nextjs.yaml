@@ -86,7 +86,10 @@ jobs:
           cp -rf frontend/out ./
           touch ./out/.nojekyll
       - name: Debug
-        run: ls -la ./out && tree -I 'node_modules|target|.git' -L 3
+        run: |
+          ls -la ./out
+          tree -a -L 3 -I 'node_modules|target|.git' .
+          tree -a -L 4 ./out
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
