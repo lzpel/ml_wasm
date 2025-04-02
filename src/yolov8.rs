@@ -1,12 +1,13 @@
+use std::io::Read;
 use image::{DynamicImage, GenericImageView, Pixel};
 use tract_onnx::prelude::*;
 use tract_onnx::tract_core::ndarray::Axis;
 
-pub fn yolov8(model_path: impl AsRef<std::path::Path>, original_img: &image::DynamicImage, confidence: f32) -> TractResult<(DynamicImage, Vec<BBox>)> {
+pub fn yolov8(mut model_file: impl Read, original_img: &image::DynamicImage, confidence: f32) -> TractResult<(DynamicImage, Vec<BBox>)> {
     let size = 640usize;
     let model = tract_onnx::onnx()
         // load the model
-        .model_for_path(model_path)?
+        .model_for_read(&mut model_file)?
         // optimize the model
         .into_optimized()?;
     //モデル構造の可視化
@@ -111,6 +112,8 @@ pub fn image_with_bbox(src: &image::DynamicImage, bbox: &Vec<BBox>) -> image::Dy
 
 #[cfg(test)]
 mod tests {
+    use std::{fs, io};
+    use std::path::Path;
     use super::*;
     #[test]
     fn test_resize_with_padding() {
@@ -119,10 +122,13 @@ mod tests {
     }
     #[test]
     fn test_yolov8n() {
-        let (img, out) = yolov8("yolov8n.onnx", &load_image(), 0.5).expect("TODO: panic message");
+        let (img, out) = yolov8(open("onnx/yolov8n.onnx").unwrap(), &load_image(), 0.5).unwrap();
         image_with_bbox(&img, &out).save("test_yolov8n.out.png").unwrap();
     }
     fn load_image() -> DynamicImage {
-        image::open(r"data/baseball.jpg").unwrap()
+        image::open(r"input/baseball.jpg").unwrap()
+    }
+    fn open<P: AsRef<Path>>(path: P) -> io::Result<io::BufReader<fs::File>> {
+        Ok(io::BufReader::new(fs::File::open(path)?))
     }
 }
