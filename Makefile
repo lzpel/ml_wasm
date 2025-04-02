@@ -2,9 +2,10 @@ generate: generate-wasm generate-frontend
 	@: nothing
 generate-wasm:
 	cargo install wasm-pack
-	rustup default 1.81
+	@: 昔は1.81でないと動かなかった
+	@: rustup default 1.81
 	wasm-pack build . -d ./frontend/output
-	rustup default stable
+	@: rustup default stable
 generate-frontend:
 	cd frontend && npm install
 run:
