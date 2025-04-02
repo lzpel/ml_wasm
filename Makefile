@@ -13,8 +13,6 @@ generate-public:
 	cp -rf input onnx frontend/public/output/
 run:
 	cd frontend && npm run dev
-deploy:
-	cd frontend && npm run build
 tree:
 	@: wasmコンパイルできない理由を探るのに便利
 	cargo tree
