@@ -81,12 +81,14 @@ jobs:
       - name: Build with Next.js
         working-directory: ./frontend
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Copy and Adjustment
+        run: cp -rf frontend/out ./ && touch ./out/.nojekyll
       - name: Debug
-        run: tree -I 'node_modules|target|.git' -L 2
+        run: tree -I 'node_modules|target|.git' -L 3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/out
+          path: ./out
 
   # Deployment job
   deploy:
