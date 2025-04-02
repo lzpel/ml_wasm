@@ -82,9 +82,11 @@ jobs:
         working-directory: ./frontend
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Copy and Adjustment
-        run: cp -rf frontend/out ./ && echo 1 > ./out/.nojekyll
+        run: | 
+          cp -rf frontend/out ./
+          touch ./out/.nojekyll
       - name: Debug
-        run: tree -I 'node_modules|target|.git' -L 3
+        run: ls -la ./out && tree -I 'node_modules|target|.git' -L 3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
