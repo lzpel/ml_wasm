@@ -9,8 +9,12 @@ export default function Home() {
 				<li>rustコード全体をwasm-packでWebAssemblyとしてコンパイルし、wasmファイルとglueコードを得る</li>
 				<li>wasmファイルとglueコードをNextJsで読み込みフロントエンドに統合</li>
 				<li>フロントエンド画像認識が実現（エッジML・サーバーMLに続く第3の選択肢）</li>
+				<li>process.env.NEXT_PUBLIC_PREFIX=`${process.env.NEXT_PUBLIC_PREFIX}`</li>
 			</ul>
-			<FetchDetectedImage src="/output/input/baseball.jpg" onnx="/output/onnx/yolov8n.onnx"/>
+			<FetchDetectedImage
+				src={`${process.env.NEXT_PUBLIC_PREFIX}/output/input/baseball.jpg`}
+				onnx={`${process.env.NEXT_PUBLIC_PREFIX}/output/onnx/yolov8n.onnx`}
+			/>
 		</>
 	);
 }

@@ -80,13 +80,13 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
         working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_GITHUB_REPO: ${{ github.event.repository.name }}
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
-      - name: Copy and Adjustment
-        run: cp -rf frontend/out ./
-      - name: Debug
-        run: |
+      - name: Copy, Debug
+        run: | 
+          cp -rf frontend/out ./
           tree -a -L 4 -I 'node_modules|target|.git' .
-          tree -a -L 4 ./out
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
