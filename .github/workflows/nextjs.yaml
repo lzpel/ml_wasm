@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: make generate
       - name: Build with Next.js
-        run: make deploy
+        run: make deploy && touch frontend/out/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
