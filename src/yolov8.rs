@@ -122,7 +122,7 @@ mod tests {
     }
     #[test]
     fn test_yolov8n() {
-        let (img, out) = yolov8(open("onnx/yolov8n.onnx").unwrap(), &load_image(), 0.5).unwrap();
+        let (img, out) = yolov8(open("onnx/yolov8n.onnx").unwrap(), &load_image(), 0.25).unwrap();
         image_with_bbox(&img, &out).save("test_yolov8n.out.png").unwrap();
     }
     fn load_image() -> DynamicImage {

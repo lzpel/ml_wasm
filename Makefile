@@ -11,6 +11,9 @@ generate-frontend:
 generate-public:
 	mkdir -p frontend/public/output
 	cp -rf input onnx frontend/public/output/
+generate-onnx:
+	cd onnx && pipenv install
+	cd onnx && pipenv run yolo.py
 run:
 	cd frontend && npm run dev
 tree:
