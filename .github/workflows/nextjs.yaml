@@ -33,11 +33,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Custom make generate
         run: make generate
-      - name: Inner
+      - name: Change Directory with .env
+        # https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#loading-environment-variables
         run: | 
           mv frontend ../x
           find . -mindepth 1 -delete
           find ../x -mindepth 1 -maxdepth 1 -exec mv -t . {} +
+          echo 'NEXT_PUBLIC_REPO=${{ github.event.repository.name }}'>>.env
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -81,8 +83,6 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
-        env:
-          NEXT_PUBLIC_GITHUB_REPO: ${{ github.event.repository.name }}
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

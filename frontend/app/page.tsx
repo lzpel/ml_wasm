@@ -1,4 +1,6 @@
 import FetchDetectedImage from "@/ui/FetchDetectedImage";
+import WebcamVideo from "@/ui/WebcamVideo";
+import React from "react";
 
 export default function Home() {
 	return (
@@ -11,6 +13,7 @@ export default function Home() {
 				<li>フロントエンド画像認識が実現（エッジML・サーバーMLに続く第3の選択肢）</li>
 				<li>process.env.NEXT_PUBLIC_PREFIX=`${process.env.NEXT_PUBLIC_PREFIX}`</li>
 			</ul>
+			<WebcamVideo />
 			<FetchDetectedImage
 				src={`${process.env.NEXT_PUBLIC_PREFIX}/output/input/baseball.jpg`}
 				onnx={`${process.env.NEXT_PUBLIC_PREFIX}/output/onnx/yolov8n.onnx`}
