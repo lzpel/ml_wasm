@@ -33,7 +33,10 @@ const WebcamVideo = (props: React.VideoHTMLAttributes<HTMLVideoElement>) => {
 	}, []);
 
 	return error ? (
-		<div>{error}</div>
+		<video
+			{...props}
+			style={{...props.style, background: "gray"}}
+		/>
 	) : (
 		<video
 			ref={videoRef}

@@ -1,9 +1,9 @@
 use std::io::Read;
-use image::{DynamicImage, GenericImageView, Pixel};
+use image::{GenericImageView, Pixel};
 use tract_onnx::prelude::*;
 use tract_onnx::tract_core::ndarray::Axis;
 
-pub fn yolov8(mut model_file: impl Read, original_img: &image::DynamicImage, confidence: f32) -> TractResult<(DynamicImage, Vec<BBox>)> {
+pub fn yolov8(mut model_file: impl Read, original_img: &image::DynamicImage, confidence: f32) -> TractResult<Vec<BBox>> {
     let size = 640usize;
     let model = tract_onnx::onnx()
         // load the model
@@ -19,13 +19,13 @@ pub fn yolov8(mut model_file: impl Read, original_img: &image::DynamicImage, con
     }
     // make the model runnable and fix its inputs and outputs
     let model_runnable=model.into_runnable()?;
-    let img = resize_with_padding(size, original_img);
+    let input_square_padded_image = square_padded_image(size, original_img);
     //https://github.com/pykeio/ort/blob/main/examples/yolov8/examples/yolov8.rs
     //let input: Vec<f32> = [0, 1, 2].into_iter().map(|v| img.pixels().map(move |(_x, _y, c)| c.channels()[v] as f32 / 255.)).flatten().collect();
-    let image: Tensor = tract_ndarray::Array4::from_shape_fn((1, 3, size, size), |(_, c, y, x)| {
-        img.get_pixel(x as _, y as _).channels()[c as usize] as f32 / 255.
+    let input_tensor: Tensor = tract_ndarray::Array4::from_shape_fn((1, 3, size, size), |(_, c, y, x)| {
+        input_square_padded_image.get_pixel(x as _, y as _).channels()[c as usize] as f32 / 255.
     }).into();
-    let results = model_runnable.run(tvec!(image.into()))?;
+    let results = model_runnable.run(tvec!(input_tensor.into()))?;
     let result = &results[0];
     let output_tensor = result.to_array_view::<f32>()?;
     let output_tensor_0=output_tensor.index_axis(Axis(0), 0);
@@ -41,7 +41,7 @@ pub fn yolov8(mut model_file: impl Read, original_img: &image::DynamicImage, con
             boxes.push(BBox::new(x_center_y_center_w_h, *prob, class));
         }
     }
-    Ok((img, BBox::nms(boxes, 0.45)))
+    Ok(BBox::nms(boxes, 0.45).iter().map(|v| v.remove_square_pad(original_img.width() as f32, original_img.height() as f32)).collect())
 }
 #[derive(Debug, Clone, Copy)]
 pub struct BBox {
@@ -72,9 +72,6 @@ impl BBox {
     pub fn iou(&self, other: &Self) -> f32 {
         self.intersection(other) / self.union(other)
     }
-    pub fn quantized_box(&self, width: usize, height: usize) -> [usize; 4] {
-        [(self.x1, width), (self.y1, height), (self.x2, width), (self.y2, height)].map(|v| ((v.0 * v.1 as f32) as usize).min(v.1 - 1).max(0))
-    }
     pub fn nms(boxes: Vec<Self>, iou_threshold: f32) -> Vec<Self> {
         let mut sorted_boxes = boxes.clone();
         sorted_boxes.sort_by(|a, b| a.probability.partial_cmp(&b.probability).unwrap());
@@ -85,8 +82,23 @@ impl BBox {
         }
         result
     }
+    pub fn remove_square_pad(&self, w: f32, h: f32) -> Self {
+        let max_edge =f32::max(w, h);
+        let v=[[self.x1, self.y1], [self.x2, self.y2]].map(|[x,y]| [[x, w],[y, h]].map(|[v, edge]| (v-0.5)/edge*max_edge+0.5));
+        Self{
+            x1: v[0][0],
+            y1: v[0][1],
+            x2: v[1][0],
+            y2: v[1][1],
+            probability: self.probability,
+            class: self.class,
+        }
+    }
+    pub fn quantized_box(&self, width: usize, height: usize) -> [usize; 4] {
+        [(self.x1, width), (self.y1, height), (self.x2, width), (self.y2, height)].map(|v| ((v.0 * v.1 as f32) as usize).min(v.1 - 1).max(0))
+    }
 }
-pub fn resize_with_padding(size: usize, src: &image::DynamicImage) -> image::DynamicImage {
+pub fn square_padded_image(size: usize, src: &image::DynamicImage) -> image::DynamicImage {
     let mut dst = image::ImageBuffer::from_pixel(size as u32, size as u32, image::Rgb([255, 255, 255]));
     let resized = src.resize(size as u32, size as u32, image::imageops::CatmullRom);
     let (x_offset, y_offset) = ((dst.width() - resized.width()) / 2, (dst.height() - resized.height()) / 2);
@@ -117,12 +129,13 @@ mod tests {
     use super::*;
     #[test]
     fn test_resize_with_padding() {
-        let output = resize_with_padding(320, &load_image());
+        let output = square_padded_image(320, &load_image());
         output.save("test_resize_with_padding.out.png").unwrap();
     }
     #[test]
-    fn test_yolov8n() {
-        let (img, out) = yolov8(open("onnx/yolov8n.onnx").unwrap(), &load_image(), 0.5).unwrap();
+    fn test_yolov8n(){
+        let img = load_image();
+        let out = yolov8(open("onnx/yolov8n.onnx").unwrap(), &img, 0.5).unwrap();
         image_with_bbox(&img, &out).save("test_yolov8n.out.png").unwrap();
     }
     fn load_image() -> DynamicImage {
