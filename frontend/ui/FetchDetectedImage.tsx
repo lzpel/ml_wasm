@@ -2,7 +2,7 @@
 import React from "react";
 import {fetchArrayBuffer} from "@/utils";
 import {Detection, yolov8} from "@/output";
-import DetectionOverlay from "@/ui/DetectionOverlay";
+import DetectionWrapper from "@/ui/DetectionWrapper";
 
 export async function recognition(onnx: Promise<ArrayBuffer>, image: Promise<ArrayBuffer>): Promise<Detection[]>{
 	return Promise.all([onnx, image])
@@ -16,7 +16,7 @@ export async function recognition(onnx: Promise<ArrayBuffer>, image: Promise<Arr
 export default function FetchDetectedImage(props: { children?: React.ReactNode, src: string,  onnx: string }) {
 	const result=recognition(fetchArrayBuffer(props.onnx), fetchArrayBuffer(props.src))
 
-	return <DetectionOverlay detections={result}>
-		<img src={props.src} width="100%" height={"auto"}/>
-	</DetectionOverlay>
+	return <DetectionWrapper detections={result}>
+		<img src={props.src} width="100%" height={"auto"} alt={"image src"}/>
+	</DetectionWrapper>
 }

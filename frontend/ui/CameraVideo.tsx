@@ -2,7 +2,7 @@
 
 import React, {useEffect, useRef, useState} from 'react';
 
-const WebcamVideo = (props: React.VideoHTMLAttributes<HTMLVideoElement>) => {
+const CameraVideo = (props: React.VideoHTMLAttributes<HTMLVideoElement>) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -48,4 +48,4 @@ const WebcamVideo = (props: React.VideoHTMLAttributes<HTMLVideoElement>) => {
 	)
 };
 
-export default WebcamVideo;
+export default CameraVideo;

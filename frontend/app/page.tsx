@@ -1,6 +1,7 @@
-import WebcamVideo from "@/ui/WebcamVideo";
+import CameraVideo from "@/ui/CameraVideo";
 import React from "react";
 import FetchDetectedImage from "@/ui/FetchDetectedImage";
+import CaptureDetector from "@/ui/CaptureDetector";
 
 export default function Home() {
 	const image=`${process.env.NEXT_PUBLIC_PREFIX}/output/input/baseball.jpg`
@@ -14,7 +15,7 @@ export default function Home() {
 				<li>wasmファイルとglueコードをNextJsで読み込みフロントエンドに統合</li>
 			</ul>
 			<FetchDetectedImage src={image} onnx={onnx}/>
-			<WebcamVideo width="100%" height="auto"/>
+			<CaptureDetector element={CameraVideo}/>//HOCで掛けそう
 		</>
 	);
 }

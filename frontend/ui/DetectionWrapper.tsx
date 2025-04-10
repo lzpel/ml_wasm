@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 import {Detection} from "@/output";
-const DetectionOverlay = (props:{children?:React.ReactNode, detections?: Detection[]|Promise<Detection[]>}) => {
+const DetectionWrapper = (props:{children?:React.ReactNode, detections?: Detection[]|Promise<Detection[]>}) => {
     // children
     // example <video src="/sample.mp4" controls style={{width: "100%", height: "auto", display: "block"}}/>
     const children=props.children
@@ -42,4 +42,4 @@ function isArray(data: unknown): data is unknown[] {
 function isPromise<T>(value: T | Promise<T>): value is Promise<T> {
     return typeof (value as any)?.then === "function";
 }
-export default DetectionOverlay;
+export default DetectionWrapper;
