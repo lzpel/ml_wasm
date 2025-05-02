@@ -138,7 +138,7 @@ mod tests {
         let out = yolov8(open("onnx/yolov8n.onnx").unwrap(), &img, 0.5).unwrap();
         image_with_bbox(&img, &out).save("test_yolov8n.out.png").unwrap();
     }
-    fn load_image() -> DynamicImage {
+    fn load_image() -> image::DynamicImage {
         image::open(r"input/baseball.jpg").unwrap()
     }
     fn open<P: AsRef<Path>>(path: P) -> io::Result<io::BufReader<fs::File>> {
