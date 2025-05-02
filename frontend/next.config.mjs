@@ -1,10 +1,10 @@
 // next.config.tsはworkflowが読み込めない。mjsが回避策
 const nextConfig = {
 	output: 'export', // これは動的なサイトを生成してしまうので間違いでexportが正解。そしてmjsにするならばexportも書かなくてよい
-	basePath: process.env.NEXT_PUBLIC_GITHUB_REPO ? `/${process.env.NEXT_PUBLIC_GITHUB_REPO}` : undefined,
-	assetPrefix: process.env.NEXT_PUBLIC_GITHUB_REPO ? `/${process.env.NEXT_PUBLIC_GITHUB_REPO}/` : undefined,
+	basePath: process.env.NEX_PUBLIC_REPO ? `/${process.env.NEX_PUBLIC_REPO}` : undefined,
+	assetPrefix: process.env.NEX_PUBLIC_REPO ? `/${process.env.NEX_PUBLIC_REPO}/` : undefined,
 	env: {
-		NEXT_PUBLIC_PREFIX: process.env.NEXT_PUBLIC_GITHUB_REPO ? `/${process.env.NEXT_PUBLIC_GITHUB_REPO}` : "",
+		NEXT_PUBLIC_PREFIX: process.env.NEX_PUBLIC_REPO ? `/${process.env.NEX_PUBLIC_REPO}` : "",
 	},
 	webpack: (config, options) => {
 		config.experiments = {
